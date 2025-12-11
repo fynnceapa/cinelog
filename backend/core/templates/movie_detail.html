@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ movie.title }} - CineLog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f4f4; }
+        .movie-poster {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .meta-data { font-size: 0.9rem; color: #666; }
+        .review-card { border-left: 4px solid #007bff; background: white; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">⬅ Înapoi la CineLog</a>
+            {% if user.is_authenticated %}
+                <span class="text-white">Logged as: {{ user.username }}</span>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                {% if movie.poster_url %}
+                    <img src="{{ movie.poster_url }}" class="movie-poster" alt="{{ movie.title }}">
+                {% else %}
+                    <img src="https://via.placeholder.com/400x600?text=No+Poster" class="movie-poster" alt="No Image">
+                {% endif %}
+            </div>
+
+            <div class="col-md-8">
+                <h1 class="fw-bold">{{ movie.title }}</h1>
+                <p class="meta-data">
+                    Lansat: <strong>{{ movie.release_date }}</strong> | 
+                    Adăugat pe: {{ movie.created_at|date:"d M Y" }}
+                </p>
+                
+                <div class="lead mb-4">
+                    {{ movie.description }}
+                </div>
+
+                <div class="card bg-light mb-4 p-3 border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">Ai văzut acest film?</h5>
+                            <small class="text-muted">Spune-ne părerea ta!</small>
+                        </div>
+                        {% if user.is_authenticated %}
+                            <button class="btn btn-primary btn-lg">⭐ Adaugă Review</button>
+                        {% else %}
+                            <a href="{% url 'oidc_authentication_init' %}" class="btn btn-outline-primary">Loghează-te pentru a da review</a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <h3 class="border-bottom pb-2 mb-3">Recenzii Comunitate</h3>
+                
+                {% for review in movie.reviews.all %}
+                    <div class="card mb-3 review-card shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="card-subtitle mb-2 text-muted fw-bold">@{{ review.user.username }}</h6>
+                                <span class="badge bg-warning text-dark">★ {{ review.rating }}/5</span>
+                            </div>
+                            <p class="card-text mt-2">{{ review.content }}</p>
+                            <small class="text-muted">{{ review.created_at|timesince }} ago</small>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted fst-italic">Nu există recenzii pentru acest film. Fii primul care scrie una!</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
