@@ -1,0 +1,42 @@
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}"><i class="bi bi-film"></i> Cine<span>Log</span></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            
+            <form class="d-flex mx-auto my-2 my-lg-0 navbar-search-custom" role="search" action="{% url 'search' %}" method="get">
+                <input class="form-control me-2 bg-dark text-white border-secondary" type="search" name="q" placeholder="Caută filme sau utilizatori..." aria-label="Search" value="{{ query|default:'' }}">
+                <button class="btn btn-outline-info" type="submit"><i class="bi bi-search"></i></button>
+            </form>
+
+            <ul class="navbar-nav ms-auto align-items-center">
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'feed' %}">Feed</a>
+                    </li>
+                    <li class="nav-item me-3">
+                        <span style="color: #bbb; font-weight: 600; margin-left: 15px;">Salut,</span>
+                        <a href="{% url 'user_profile' user.username %}" class="text-white text-decoration-none fw-bold ms-1">
+                            {{ user.username }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <form action="{% url 'oidc_logout' %}" method="post" class="d-inline ms-2">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-light btn-sm fw-bold border-2">LOGOUT</button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a href="{% url 'oidc_authentication_init' %}" class="nav-link">Autentificare</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'oidc_register' %}" class="btn btn-info btn-sm ms-3 fw-bold">Creare Cont</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

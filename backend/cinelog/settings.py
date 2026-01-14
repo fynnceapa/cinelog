@@ -25,8 +25,8 @@ SECRET_KEY = 'django-insecure-*3_h8*503=kxy4a(u4*3o-2di#0%pps1$021l)a2^-$n=j!x5u
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+# ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
 # Application definition
 
@@ -39,8 +39,29 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'mozilla_django_oidc',
     'django_elasticsearch_dsl',
+    'rest_framework',
+    'django_filters',
     'core',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'mozilla_django_oidc.contrib.drf.OIDCAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    'EXCEPTION_HANDLER': 'core.utils.custom_exception_handler',
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -110,8 +131,8 @@ OIDC_RP_CLIENT_ID = os.environ.get('OIDC_RP_CLIENT_ID', '420')
 OIDC_RP_CLIENT_SECRET = os.environ.get('OIDC_RP_CLIENT_SECRET')
 OIDC_RP_SIGN_ALGO = 'RS256'
 
-KEYCLOAK_URL_EXTERNAL = 'http://localhost:8080' # Pentru browser
-KEYCLOAK_URL_INTERNAL = 'http://keycloak:8080'  # Pentru comunicarea intre containere
+KEYCLOAK_URL_EXTERNAL = 'http://localhost:8080'
+KEYCLOAK_URL_INTERNAL = 'http://keycloak:8080'
 
 KEYCLOAK_REALM = 'cinelog'
 
@@ -159,9 +180,17 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 ELASTICSEARCH_DSL = {
     'default': {
         'hosts': 'http://elasticsearch:9200'
     },
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'mailhog'
+EMAIL_PORT = 1025
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_USE_TLS = False
+DEFAULT_FROM_EMAIL = 'CineLog <noreply@cinelog.com>'
+ 

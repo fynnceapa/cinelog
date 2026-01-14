@@ -1,0 +1,154 @@
+version: '3.8'
+networks:
+  backend_net:
+    driver: overlay
+
+volumes:
+  db_data:
+  es_data:
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: cinelog_db
+      POSTGRES_USER: cinelog_user
+      POSTGRES_PASSWORD: password123
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - backend_net
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+      restart_policy:
+        condition: on-failure
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.0
+    command: start-dev
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/keycloak
+      KC_DB_USERNAME: cinelog_user
+      KC_DB_PASSWORD: password123
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME: localhost
+      KC_HTTP_PORT: 8080
+    ports:
+      - "8080:8080"
+    networks:
+      - backend_net
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.role == manager]
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.9
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    networks:
+      - backend_net
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1G
+      placement:
+        constraints: [node.role == manager]
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    networks:
+      - backend_net
+    ports:
+      - "15672:15672"
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+
+  web:
+    image: fynnceapa2/cinelog-backend:latest
+    command: sh -c "python manage.py wait_for_db && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=cinelog_db
+      - DB_USER=cinelog_user
+      - DB_PASS=password123
+      - OIDC_RP_CLIENT_ID=cinelog_backend
+      - OIDC_RP_CLIENT_SECRET=Hc12Vi5l30xTiDeTSHiFpzYUiAdd0fjT
+      - ELASTICSEARCH_HOST=elasticsearch
+      - RABBITMQ_HOST=rabbitmq
+      - ALLOWED_HOSTS=*
+    networks:
+      - backend_net
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+
+  worker_reviews:
+    image: fynnceapa2/cinelog-backend:latest
+    command: python manage.py run_review_worker
+    environment:
+      - DB_HOST=db
+      - DB_NAME=cinelog_db
+      - DB_USER=cinelog_user
+      - DB_PASS=password123
+      - RABBITMQ_HOST=rabbitmq
+    networks:
+      - backend_net
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  worker_notifications:
+    image: fynnceapa2/cinelog-backend:latest
+    command: python manage.py run_notification_worker
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - EMAIL_HOST=mailhog 
+      - EMAIL_PORT=1025
+    networks:
+      - backend_net
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  # 8. Mailhog (Testing)
+  mailhog:
+    image: jcalonso/mailhog:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - backend_net
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5

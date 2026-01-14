@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}CineLog - Search{% endblock %}
+{% block extra_css %} 
+    <style>
+        .movie-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s, border-color 0.2s;
+            height: 100%;
+        }
+        .movie-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-color);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .movie-poster {
+            height: 300px;
+            object-fit: cover;
+            width: 100%;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .card-body {
+            padding: 1.2rem;
+        }
+        
+        .year-badge {
+            background-color: rgba(64, 188, 244, 0.15);
+            color: var(--accent-color);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 10px;
+            border: 1px solid rgba(64, 188, 244, 0.3);
+        }
+        .section-header {
+            color: var(--text-main);
+            border-bottom: 2px solid #445566;
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .movie-title {
+            font-size: 1.1rem;
+            line-height: 1.4;
+            color: #fff;
+        }
+        @media (min-width: 992px) {
+            .navbar > .container {
+                position: relative;
+            }
+
+            .navbar-search-custom {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 100%;
+                max-width: 400px;
+                z-index: 10;
+                margin: 0 !important;
+            }
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container mt-5 mb-5">
+        <h2 class="mb-5 fw-bold display-6">Rezultate pentru: "<span style="color: var(--accent-color);">{{ query }}</span>"</h2>
+
+        <h4 class="section-header">Filme</h4>
+        
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-4 mb-5">
+            {% for movie in movies %}
+            <div class="col">
+                <a href="{% url 'movie_detail' movie.meta.id %}" class="text-decoration-none">
+                    <div class="card movie-card">
+                        {% if movie.poster_url %}
+                            <img src="{{ movie.poster_url }}" class="movie-poster card-img-top" alt="{{ movie.title }}">
+                        {% else %}
+                            <div class="movie-poster d-flex align-items-center justify-content-center bg-secondary text-white">
+                                <span>No poster</span>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-body">
+                            <div class="year-badge">
+                                📅 {{ movie.release_date|date:"Y" }}
+                            </div>
+                            
+                            <h5 class="movie-title fw-bold text-truncate" title="{{ movie.title }}">
+                                {{ movie.title }}
+                            </h5>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+                <div class="col-12">
+                    <p class="text-secondary fs-5">Nu am gasit filme. Pff...</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <h4 class="section-header mt-5">Utilizatori</h4>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="list-group">
+                    {% for u in users %}
+                        <a href="{% url 'user_profile' u.username %}" class="list-group-item list-group-item-action bg-dark text-white border-secondary d-flex align-items-center gap-3 p-3 mb-2 rounded border">
+                            <div class="rounded-circle bg-secondary d-flex justify-content-center align-items-center shadow" style="width: 50px; height: 50px; font-weight: bold; font-size: 1.2rem; border: 2px solid #556677;">
+                                {{ u.username|slice:":1"|upper }}
+                            </div>
+                            <div>
+                                <span class="fw-bold d-block fs-5 text-info">@{{ u.username }}</span>
+                                <!-- <small style="color: var(--text-secondary);">Utilizator CineLog</small> -->
+                            </div>
+                        </a>
+                    {% empty %}
+                        <p class="text-secondary fs-5">Nu am gasit utilizatori. Pff...</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -2,3 +2,8 @@ Django>=5.0
 psycopg2-binary
 djangorestframework
 mozilla-django-oidc
+django-elasticsearch-dsl>=7.2.2,<8.0.0
+elasticsearch-dsl>=7.0.0,<8.0.0
+elasticsearch>=7.0.0,<8.0.0
+pika
+django-filter

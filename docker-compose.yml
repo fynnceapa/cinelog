@@ -1,7 +1,4 @@
-version: '3.8'
-
 services:
-  # 1. Baza de date
   db:
     image: postgres:16
     environment:
@@ -16,13 +13,12 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-    healthcheck: # Adaugam healthcheck pentru a fi siguri ca DB e gata
+    healthcheck:
       test: ["CMD-SHELL", "pg_isready -U cinelog_user -d cinelog_db"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  # 2. Keycloak (Auth Service)
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.0
     command: start-dev
@@ -42,8 +38,68 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.9
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    networks:
+      - backend_net
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
 
-  # 3. Aplicatia Backend (Django)
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672" 
+      - "15672:15672"
+    networks:
+      - backend_net
+
+  worker:
+    build: ./backend
+    command: python manage.py run_review_worker 
+    environment:
+      - DB_HOST=db
+      - DB_NAME=cinelog_db
+      - DB_USER=cinelog_user
+      - DB_PASS=password123
+      - RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - backend_net
+
+  mailhog:
+    image: mailhog/mailhog
+    logging:
+      driver: 'none'  # Opțional, pentru a nu umple consola cu loguri
+    ports:
+      - "1025:1025" # Portul SMTP prin care Django trimite mail-ul
+      - "8025:8025" # Interfața Web unde vei vedea mail-urile
+    networks:
+      - backend_net
+
+  notification_worker:
+    build: ./backend
+    command: python manage.py run_notification_worker
+    environment:
+      - DB_HOST=db
+      - DB_NAME=cinelog_db
+      - DB_USER=cinelog_user
+      - DB_PASS=password123
+      - RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - db
+      - rabbitmq
+      - mailhog
+    networks:
+      - backend_net
+
   web:
     build: ./backend
     command: python manage.py runserver 0.0.0.0:8000
@@ -57,15 +113,16 @@ services:
       - DB_USER=cinelog_user
       - DB_PASS=password123
       - OIDC_RP_CLIENT_ID=cinelog_backend
-      - OIDC_RP_CLIENT_SECRET=yKFqdoJgrDDtja0UoTeVX8kZuhobMCXz
+      - OIDC_RP_CLIENT_SECRET=Hc12Vi5l30xTiDeTSHiFpzYUiAdd0fjT
     networks:
       - backend_net
     depends_on:
       - db
       - keycloak
-
+      - elasticsearch
 networks:
   backend_net:
 
 volumes:
   db_data:
+  es_data:

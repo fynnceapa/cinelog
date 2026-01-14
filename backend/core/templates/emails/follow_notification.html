@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { background-color: #14181c; font-family: 'Outfit', sans-serif; color: #ffffff; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 40px; background-color: #1f252d; border-radius: 8px; border: 1px solid #2c3440; }
+        .header { color: #40bcf4; font-size: 24px; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; }
+        .content { font-size: 16px; line-height: 1.6; color: #e1e3e6; }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #445566; font-size: 12px; color: #99aabb; text-align: center; }
+        .button { display: inline-block; padding: 12px 24px; background-color: #40bcf4; color: #0d1216; text-decoration: none; border-radius: 4px; font-weight: 800; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">Cine<span>Log</span></div>
+        <div class="content">
+            <p>Salut, <strong>{{ target_username }}</strong>!</p>
+            <p>Avem vești noi: <strong>@{{ follower_username }}</strong> a început să te urmărească.</p>
+            <p>Acum îți poate vedea jurnalul de filme și recenziile în fluxul său de activitate.</p>
+            <a href="http://localhost:8000/u/{{ follower_username }}/" class="button">VEZI PROFILUL</a>
+        </div>
+        <div class="footer">
+            &copy; 2025 CineLog - Proiect Sisteme Distribuite
+        </div>
+    </div>
+</body>
+</html>

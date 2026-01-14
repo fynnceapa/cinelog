@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}CineLog - Toate Filmele{% endblock %}
+{% block extra_css %}
+    <style>
+        .poster-container {
+            position: relative;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            aspect-ratio: 2/3;
+        }
+        .poster-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .movie-card:hover .poster-container {
+            box-shadow: 0 0 0 3px var(--accent-color);
+            cursor: pointer;
+        }
+        .poster-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            opacity: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s;
+        }
+        .movie-card:hover .poster-overlay { opacity: 1; }
+
+        .movie-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-top: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .movie-year {
+            font-size: 0.9rem;
+            color: #cccccc;
+        }
+        a.movie-link { text-decoration: none; }
+        footer {
+            background-color: #242c36;
+            color: #b0c0d0; /* Footer mai lizibil */
+            border-top: 1px solid #456;
+            margin-top: 60px auto 0;
+        }
+        @media (min-width: 992px) {
+            .navbar > .container {
+                position: relative;
+            }
+
+            .navbar-search-custom {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 100%;
+                max-width: 400px;
+                z-index: 10;
+                margin: 0 !important;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-5 mb-5">
+        <div class="d-flex align-items-center mb-4 border-bottom border-secondary pb-3">
+            <h2 class="fw-bold mb-0">Toate Filmele</h2>
+            <div class="dropdown ms-3">
+                <button class="btn btn-outline-info dropdown-toggle" type="button" data-bs-toggle="dropdown">Sortare</button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="?sort=release_date_desc">Data Lansare (desc)</a></li>
+                    <li><a class="dropdown-item" href="?sort=release_date_asc">Data Lansare (cresc)</a></li>
+                    <li><a class="dropdown-item" href="?sort=rating_desc">Rating (desc)</a></li>
+                    <li><a class="dropdown-item" href="?sort=rating_asc">Rating (cresc)</a></li>
+                    <li><a class="dropdown-item" href="?sort=name">Nume</a></li>
+                </ul>
+            </div>
+            <span class="ms-auto badge bg-secondary">{{ movies.count }} titluri</span>
+        </div>
+
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-4">
+            {% for movie in movies %}
+            <div class="col">
+                <a href="{% url 'movie_detail' movie.id %}" class="movie-link">
+                    <div class="movie-card">
+                        <div class="poster-container">
+                            {% if movie.poster_url %}
+                                <img src="{{ movie.poster_url }}" alt="{{ movie.title }}">
+                            {% else %}
+                                <div class="d-flex flex-column align-items-center justify-content-center h-100 bg-secondary text-white">
+                                    <span>🎬</span>
+                                </div>
+                            {% endif %}
+                            <div class="poster-overlay">
+                                <span class="badge bg-white text-dark fw-bold px-3 py-2">DETALII</span>
+                            </div>
+                        </div>
+                        
+                        <div class="movie-info">
+                            <div class="movie-title">{{ movie.title }}</div>
+                            <div class="movie-year d-flex justify-content-between">
+                                <span>{{ movie.release_date|date:"Y" }}</span>
+                                <span class="text-warning fw-bold">
+                                    {% if movie.rating > 0 %}
+                                        ★ {{ movie.rating|floatformat:1 }}
+                                    {% else %}
+                                        <span class="text-muted opacity-50">★ N/A</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+                <p>Nu exista filme.</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

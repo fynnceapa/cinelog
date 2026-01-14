@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% block title %}CineLog - Feed{% endblock %}
+{% block extra_css %}
+    <style>
+        .page-header {
+            border-bottom: 1px solid #445566;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            margin-top: 30px;
+        }
+
+        .page-title {
+            font-weight: 800;
+            color: var(--text-main);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .feed-card {
+            background-color: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 25px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            overflow: hidden;
+        }
+
+        .feed-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            border-color: rgba(64, 188, 244, 0.3);
+        }
+
+        .feed-header {
+            padding: 15px 20px;
+            background-color: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--bg-body);
+            border: 2px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        .feed-user-link {
+            color: var(--text-main);
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .feed-user-link:hover { color: var(--accent-color); }
+
+        .feed-action-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .feed-body {
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .feed-poster {
+            width: 100px;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            transition: transform 0.2s;
+        }
+        .feed-poster:hover { transform: scale(1.05); }
+
+        .feed-content {
+            flex: 1;
+        }
+
+        .movie-title-link {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-main);
+            text-decoration: none;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .movie-title-link:hover { color: var(--accent-color); }
+
+        .rating-stars {
+            color: #ffc107;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .review-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            background-color: rgba(255,255,255,0.03);
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .feed-footer {
+            padding: 12px 20px;
+            text-align: right;
+            font-size: 0.85rem;
+            color: #667788;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background-color: var(--bg-card);
+            border-radius: 8px;
+            border: 1px dashed #445566;
+        }
+        
+        .btn-accent {
+            background-color: var(--accent-color);
+            color: #0d1216;
+            font-weight: 800;
+            border: none;
+            padding: 8px 20px;
+            text-transform: uppercase;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+        .btn-accent:hover { background-color: var(--accent-hover); color: #000; }
+
+        @media (max-width: 576px) {
+            .feed-body { flex-direction: column; }
+            .feed-poster { width: 100%; max-width: 140px; margin: 0 auto; }
+            .feed-content { text-align: center; }
+            .review-text { text-align: left; }
+        }
+        footer {
+            background-color: #242c36;
+            color: #b0c0d0;
+            border-top: 1px solid #456;
+            margin-top: 60px auto 0;
+        }
+        @media (min-width: 992px) {
+            .navbar > .container {
+                position: relative;
+            }
+
+            .navbar-search-custom {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 100%;
+                max-width: 400px;
+                z-index: 10;
+                margin: 0 !important;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container mb-5">
+        <div class="page-header d-flex justify-content-between align-items-end">
+            <h2 class="page-title mb-0">Activitate Prieteni</h2>
+            <span class="text-main small">Ce au vizionat prietenii tai</span>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                {% if feed_items %}
+                    {% for item in feed_items %}
+                        <div class="feed-card">
+                            
+                            <div class="feed-header">
+                                {% if item.rating %}
+                                    <a href="{% url 'user_profile' item.user.username %}" class="user-avatar-small">
+                                        {{ item.user.username|slice:":1"|upper }}
+                                    </a>
+                                    <div>
+                                        <a href="{% url 'user_profile' item.user.username %}" class="feed-user-link">
+                                            {{ item.user.username }}
+                                        </a>
+                                        <span class="feed-action-text">a vizionat</span>
+                                    </div>
+                                {% else %}
+                                    <a href="{% url 'user_profile' item.profile.user.username %}" class="user-avatar-small" style="border-color: #40bcf4; color: #40bcf4;">
+                                        {{ item.profile.user.username|slice:":1"|upper }}
+                                    </a>
+                                    <div>
+                                        <a href="{% url 'user_profile' item.profile.user.username %}" class="feed-user-link">
+                                            {{ item.profile.user.username }}
+                                        </a>
+                                        <span class="feed-action-text text-info">vrea sa vada</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="feed-body">
+                                <a href="{% url 'movie_detail' item.movie.id %}">
+                                    {% if item.movie.poster_url %}
+                                        <img src="{{ item.movie.poster_url }}" alt="{{ item.movie.title }}" class="feed-poster">
+                                    {% else %}
+                                        <img src="https://via.placeholder.com/100x150?text=No+Img" alt="No Poster" class="feed-poster">
+                                    {% endif %}
+                                </a>
+
+                                <div class="feed-content">
+                                    <a href="{% url 'movie_detail' item.movie.id %}" class="movie-title-link">
+                                        {{ item.movie.title }} 
+                                        <small class="text-muted fw-normal fs-6">({{ item.movie.release_date|date:"Y" }})</small>
+                                    </a>
+                                    
+                                    {% if item.rating %}
+                                        <span class="rating-stars">
+                                            {% for i in "12345"|make_list %}
+                                                {% if forloop.counter <= item.rating %}★{% else %}<span style="color: #445566;">★</span>{% endif %}
+                                            {% endfor %}
+                                        </span>
+
+                                        {% if item.content %}
+                                            <div class="review-text">
+                                                "{{ item.content|truncatewords:60 }}"
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <div class="mt-3">
+                                            <span class="badge bg-dark border border-info text-info">
+                                                <i class="bi bi-bookmark-plus-fill"></i> Adaugat in watchlist
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="feed-footer">
+                                Postat pe {{ item.created_at|date:"d M Y, H:i" }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <span class="display-1 d-block mb-3">📭</span>
+                        <h3 class="text-white">Feedul e gol.</h3>
+                        <p class="text-secondary mb-4">Nu urmaresti pe nimeni sau prietenii tai nu au scris recenzii sau adaugat filme recent.</p>
+                        <a href="{% url 'all_movies' %}" class="btn btn-accent">Explorează Filme</a>
+                        <br><br>
+                        <small class="text-muted">Poti cauta utilizatori folosind bara de cautare.</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
