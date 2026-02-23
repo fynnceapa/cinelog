@@ -1,6 +1,10 @@
 version: '3.8'
 networks:
-  backend_net:
+  backend:
+    driver: overlay
+  worker:
+    driver: overlay
+  data:
     driver: overlay
 
 volumes:
@@ -17,7 +21,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     networks:
-      - backend_net
+      - data
     deploy:
       replicas: 1
       placement:
@@ -40,7 +44,8 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - backend_net
+      - backend
+      - data
     deploy:
       replicas: 1
       restart_policy:
@@ -56,29 +61,28 @@ services:
     volumes:
       - es_data:/usr/share/elasticsearch/data
     networks:
-      - backend_net
+      - backend
     deploy:
       replicas: 1
       resources:
         limits:
           memory: 1G
-      placement:
-        constraints: [node.role == manager]
+
 
   rabbitmq:
     image: rabbitmq:3-management
     networks:
-      - backend_net
+      - backend
+      - worker
     ports:
       - "15672:15672"
     deploy:
       replicas: 1
-      placement:
-        constraints: [node.role == manager]
+
 
   web:
     image: fynnceapa2/cinelog-backend:latest
-    command: sh -c "python manage.py wait_for_db && python manage.py runserver 0.0.0.0:8000"
+    command: sh -c "python manage.py wait_for_db && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     ports:
       - "8000:8000"
     environment:
@@ -87,12 +91,13 @@ services:
       - DB_USER=cinelog_user
       - DB_PASS=password123
       - OIDC_RP_CLIENT_ID=cinelog_backend
-      - OIDC_RP_CLIENT_SECRET=Hc12Vi5l30xTiDeTSHiFpzYUiAdd0fjT
+      - OIDC_RP_CLIENT_SECRET=
       - ELASTICSEARCH_HOST=elasticsearch
       - RABBITMQ_HOST=rabbitmq
       - ALLOWED_HOSTS=*
     networks:
-      - backend_net
+      - backend
+      - data
     deploy:
       replicas: 3
       update_config:
@@ -105,7 +110,7 @@ services:
         max_attempts: 5
       resources:
         limits:
-          cpus: '0.50'
+          cpus: '1.0'
           memory: 512M
 
   worker_reviews:
@@ -117,8 +122,11 @@ services:
       - DB_USER=cinelog_user
       - DB_PASS=password123
       - RABBITMQ_HOST=rabbitmq
+      - ELASTICSEARCH_HOST=elasticsearch
     networks:
-      - backend_net
+      - backend
+      - data
+      - worker
     deploy:
       replicas: 2
       restart_policy:
@@ -132,20 +140,19 @@ services:
       - EMAIL_HOST=mailhog 
       - EMAIL_PORT=1025
     networks:
-      - backend_net
+      - worker
     deploy:
       replicas: 2
       restart_policy:
         condition: on-failure
 
-  # 8. Mailhog (Testing)
   mailhog:
     image: jcalonso/mailhog:latest
     ports:
       - "1025:1025"
       - "8025:8025"
     networks:
-      - backend_net
+      - worker
     deploy:
       replicas: 1
       restart_policy:

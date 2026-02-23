@@ -32,7 +32,7 @@ class Command(BaseCommand):
         for i in range(50):
             payload = {
                 'user_id': user.id,
-                'movie_id': movie.id,
+                'movie_id': 10,
                 'rating': random.randint(4, 10),
                 'content': f"Recenzie automată de test #{i} generată de script."
             }

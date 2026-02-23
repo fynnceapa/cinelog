@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+backend/*/__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.env
+
+CineLog_Tests.postman_collection.json
+docker-compose.stack.yml
+REST_STRUCTURE.md
+test_load.py
+
+# Baze de date & Date locale
+db_data/
+es_data/
+*.sqlite3
+
+.vscode/
+.idea/
+.DS_Store

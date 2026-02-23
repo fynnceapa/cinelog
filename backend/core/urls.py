@@ -4,11 +4,16 @@ from . import views
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
+# Configurarea routerului REST API
 router = DefaultRouter()
 router.register(r'api/movies', api_views.MovieViewSet, basename='api-movie')
 router.register(r'api/reviews', api_views.ReviewViewSet, basename='api-review')
+router.register(r'api/users', api_views.UserViewSet, basename='api-user')
+router.register(r'api/profiles', api_views.UserProfileViewSet, basename='api-profile')
+router.register(r'api/watchlist', api_views.WatchlistViewSet, basename='api-watchlist')
 
 urlpatterns = [
+    # Rute tradicionale HTML
     path('', views.home, name='home'),
     path('feed/', views.feed, name='feed'),
     path('search/', views.search, name='search'),
@@ -24,5 +29,6 @@ urlpatterns = [
     path('follow/<int:user_id>/', views.toggle_follow, name='toggle_follow'),
     path('u/<str:username>/', views.user_profile, name='user_profile'),
 
+    # Rute REST API
     path('', include(router.urls)), 
 ]

@@ -1,8 +1,8 @@
 {
 	"info": {
 		"_postman_id": "b8e1f5a2-1234-5678-9abc-def123456789",
-		"name": "CineLog API Tests (Complete)",
-		"description": "Teste automate (Pozitive + Negative) pentru CineLog API",
+		"name": "API Tests (Complete)",
+		"description": "",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -97,7 +97,7 @@
 			]
 		},
 		{
-			"name": "⛔ Negative Tests (Expected Failures)",
+			"name": "Expected Failures",
 			"item": [
 				{
 					"name": "4. Try Create Movie (No Auth)",
@@ -230,7 +230,7 @@
 			]
 		},
 		{
-			"name": "🧹 Cleanup",
+			"name": "Cleanup",
 			"item": [
 				{
 					"name": "8. Delete Created Review",
